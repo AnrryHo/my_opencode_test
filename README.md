@@ -102,7 +102,29 @@ opencode
 .opencode/commands/review.md
 ```
 
-## 4. 后续二开方向
+## 4. 编码和中文显示
+
+项目文本文件统一使用 UTF-8 no BOM。检查命令：
+
+```powershell
+npm run check:encoding
+```
+
+如果 Windows PowerShell 里直接 `Get-Content README.md` 出现中文乱码，使用显式 UTF-8 读取：
+
+```powershell
+Get-Content -Encoding UTF8 -Raw README.md
+```
+
+也可以先把当前控制台切到 UTF-8：
+
+```powershell
+chcp 65001
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
+$OutputEncoding = [System.Text.UTF8Encoding]::new()
+```
+
+## 5. 后续二开方向
 
 建议下一步加：
 

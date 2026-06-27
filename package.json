@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start:gateway": "node src/gateway.js",
-    "check": "node --check src/gateway.js"
+    "check": "node --check src/gateway.js && node --check scripts/check-encoding.js && node scripts/check-encoding.js",
+    "check:encoding": "node scripts/check-encoding.js"
   },
   "engines": {
     "node": ">=20"
