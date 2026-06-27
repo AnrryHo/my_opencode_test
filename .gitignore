@@ -1,0 +1,13 @@
+.env
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+gateway.out.log
+gateway.err.log
+*.log
+
+.DS_Store
+Thumbs.db

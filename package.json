@@ -1,0 +1,14 @@
+{
+  "name": "opencode-intranet-starter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal intranet OpenCode starter with an OpenAI-compatible model gateway.",
+  "type": "module",
+  "scripts": {
+    "start:gateway": "node src/gateway.js",
+    "check": "node --check src/gateway.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
