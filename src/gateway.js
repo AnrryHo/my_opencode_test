@@ -10,6 +10,8 @@ const upstreamBaseUrl = trimTrailingSlash(env.UPSTREAM_BASE_URL || "");
 const upstreamApiKey = env.UPSTREAM_API_KEY || "";
 const upstreamTimeoutMs = Number(env.UPSTREAM_TIMEOUT_MS || 120000);
 const models = parseModels(env.GATEWAY_MODELS || "dev-fast,dev-balanced,dev-best");
+const modelMap = parseModelMap(env.GATEWAY_MODEL_MAP || "");
+const defaultTemperature = parseOptionalNumber(env.GATEWAY_DEFAULT_TEMPERATURE);
 
 export const server = http.createServer(async (req, res) => {
   try {
@@ -77,6 +79,7 @@ async function route(req, res) {
 async function proxyChatCompletion(body, res) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), upstreamTimeoutMs);
+  const upstreamBody = mapUpstreamBody(body);
 
   try {
     const upstreamRes = await fetch(`${upstreamBaseUrl}/chat/completions`, {
@@ -85,7 +88,7 @@ async function proxyChatCompletion(body, res) {
         "content-type": "application/json",
         ...(upstreamApiKey ? { authorization: `Bearer ${upstreamApiKey}` } : {})
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(upstreamBody),
       signal: controller.signal
     });
 
@@ -107,6 +110,17 @@ async function proxyChatCompletion(body, res) {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+function mapUpstreamBody(body) {
+  const next = { ...body };
+  if (typeof next.model === "string" && modelMap[next.model]) {
+    next.model = modelMap[next.model];
+  }
+  if (defaultTemperature !== undefined && next.temperature === undefined) {
+    next.temperature = defaultTemperature;
+  }
+  return next;
 }
 
 function mockChatCompletion(body, res) {
@@ -262,6 +276,34 @@ function parseModels(value) {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function parseModelMap(value) {
+  const result = {};
+  for (const pair of value.split(",")) {
+    const trimmed = pair.trim();
+    if (!trimmed) {
+      continue;
+    }
+    const index = trimmed.indexOf("=");
+    if (index === -1) {
+      continue;
+    }
+    const alias = trimmed.slice(0, index).trim();
+    const upstream = trimmed.slice(index + 1).trim();
+    if (alias && upstream) {
+      result[alias] = upstream;
+    }
+  }
+  return result;
+}
+
+function parseOptionalNumber(value) {
+  if (value === undefined || value === "") {
+    return undefined;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 function trimTrailingSlash(value) {
